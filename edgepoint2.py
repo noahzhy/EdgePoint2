@@ -23,7 +23,7 @@ class EdgePoint2Wrapper(nn.Module):
         'E64': {'c1': 16, 'c2': 16, 'c3': 48, 'c4': 64, 'cdesc': 64, 'cdetect': 16},
     }
     
-    def __init__(self, cfg, top_k, k=2, score=-5):
+    def __init__(self, cfg, top_k, k=2, score=0.0):
         super().__init__()
         assert top_k is None or top_k > 0
         self.top_k = top_k
@@ -34,7 +34,7 @@ class EdgePoint2Wrapper(nn.Module):
         self.model.load_state_dict(torch.load(f'./weights/{cfg}.pth', 'cpu'))
         
         self.mp = nn.MaxPool2d(k * 2 + 1, 1, k)
-        
+
     @torch.inference_mode()
     def forward(self, x):
         B, _, oH, oW = x.shape
@@ -75,3 +75,8 @@ class EdgePoint2Wrapper(nn.Module):
 					'scores': scores[b],
 					'descriptors': descs[b]} for b in range(B) 
 			   ]
+
+
+if __name__ == '__main__':
+    im = torch.randn(1, 3, 640, 480)
+    model = EdgePoint2Wrapper('T32', 1000, 2, -5)
