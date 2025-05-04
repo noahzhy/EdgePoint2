@@ -31,6 +31,9 @@ class EdgePoint2Wrapper(nn.Module):
         self.k = k
         self.score_thresh = score
 
+        # check if cfg is valid
+        assert cfg in self.cfgs, f"Invalid cfg: {cfg}. Available cfgs: {list(self.cfgs.keys())}"
+
         self.model = EdgePoint2(**self.cfgs[cfg[:3]])
         self.model.load_state_dict(torch.load(f'./weights/{cfg}.pth', 'cpu'))
 
@@ -102,17 +105,31 @@ class EdgePoint2Wrapper(nn.Module):
         }
 
 
+# add to support python export.py --model T32
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(description='Export EdgePoint2 to ONNX')
+    parser.add_argument('--model', type=str, default='T32', help='Model name')
+    parser.add_argument('--input_height', type=int, default=640, help='Input height')
+    parser.add_argument('--input_width', type=int, default=480, help='Input width')
+    parser.add_argument('--topK', type=int, default=2048, help='Top K keypoints')
+    parser.add_argument('--output_dir', type=str, default='onnx', help='Output directory')
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == '__main__':
-    model_name = 'T32'
-    model = EdgePoint2Wrapper(model_name, 2048)
+    args = parse_args()
+    model_name = args.model
+    model = EdgePoint2Wrapper(model_name, args.topK)
     model.eval()
-    # out = model(torch.randn(1, 3, 640, 480))
     # export to as onnx
     torch.onnx.export(
         model,
-        torch.randn(1, 3, 640, 480),
+        torch.randn(1, 3, args.input_height, args.input_width),
         # torch.randn(1, 3, 1280, 960),
-        f'onnx/ep2_{model_name}.onnx',
+        # f'onnx/ep2_{model_name}.onnx',
+        f'{args.output_dir}/ep2_{model_name}.onnx',
         input_names=['images'],
         output_names=['keypoints', 'scores', 'descriptors'],
         dynamic_axes={

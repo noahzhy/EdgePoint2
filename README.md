@@ -23,3 +23,9 @@ python demo_seq.py PATH_TO_VIDEO_FILE
 ```
 
 You can add ```--model``` to select the sub-model from {T32, T48, S32, S48, S64, M32, M48, M64, L32, L48, L64, E32, E48, E64}. The letter indicates the model size, while the number denotes the output descriptor dimension.
+
+Export the model to ONNX format using the following command:
+
+```shell
+python export.py --model T32 --input_height 640 --input_width 480 --topK 2048 --output_dir ./onnx
+```

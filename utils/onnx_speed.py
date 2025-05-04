@@ -47,21 +47,12 @@ def test_onnx_model_speed(model_path, inputs, warm_up=20, test=200, force_cpu=Tr
     options.intra_op_num_threads = 4
     options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-    # ort devices check
-    print(f'Available devices: {ort.get_device()}')
-
     # Create session with optimized options
     provider_options = ['CPUExecutionProvider'] if force_cpu else ort.get_available_providers()
-    # check providers
-    print(f'Available providers: {provider_options}')
-    session = ort.InferenceSession(model_path, options, providers=provider_options)
 
+    session = ort.InferenceSession(model_path, options, providers=provider_options)
     # run one inference to get the output shape
     session.run(None, inputs)
-
-    # # Pre-allocate input data array
-    # input_name = session.get_inputs()
-    # output_name = session.get_outputs()
 
     # Combined warm-up and test phase
     times = []
@@ -116,7 +107,6 @@ if __name__ == '__main__':
     # }
 
     test_onnx_model_speed(model_path, input_shapes)
-    quit()
 
     img_path = random.choice(glob.glob('assets/002.*g'))
     output, resize_img = inference_onnx_model(model_path, img_path, target_size=(480, 640))
